@@ -1,4 +1,4 @@
-__author__ = 'LukaAvbreht, SamoKralj'
+__author__ = 'LukaAvbreht'
 
 IGRALEC_ENA = "B"
 IGRALEC_DVA = "C"
