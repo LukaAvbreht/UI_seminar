@@ -1,4 +1,4 @@
-__author__ = 'LukaAvbreht, SamoKralj'
+__author__ = 'LukaAvbreht'
 from tkinter import *
 from igra import *
 from PIL import ImageTk,Image
