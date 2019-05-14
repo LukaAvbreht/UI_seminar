@@ -29,12 +29,12 @@ class Igra():
         #None polja so prosta polja, " " so samo fillerji.
         self.na_potezi = IGRALEC_ENA
 
-        self.figurice = {IGRALEC_ENA: 0 , IGRALEC_DVA: 0}
+        self.figurice = {IGRALEC_ENA: 0, IGRALEC_DVA: 0}
         #Sproti spremljajo žetone
 
         self.faza = 0
 
-        self.postavljenih = 0 #števec ki steje koliko figur je ze bilo postavljenih
+        self.postavljenih = 0  #števec ki steje koliko figur je ze bilo postavljenih
 
         # self.faza = 0  --> Faza postavljanja figuric
         # self.faza = 1  --> Faza premikanja figuric
@@ -43,9 +43,12 @@ class Igra():
         #(kam, od kje, jemanje?, kdonapotezi), Tupli dolžine 7
 
         self.stanje = ("V TEKU", None)
-        #moznosti tega stanja so : ni konec, zmaga
+        # moznosti tega stanja so : ni konec, zmaga
+        # ("V TEKU", None)
+        # ("ZMAGA", Igralec)
 
-        self.mlin = False  #pove ali smo postavili mlin
+        self.mlin = False
+        # pove ali smo postavili mlin
 
         self.sosedi = {
                 (0, 0): [(0, 3), (3, 0)],
@@ -104,10 +107,9 @@ class Igra():
         copy.na_potezi = self.na_potezi
         copy.faza = self.faza
         copy.postavljenih = self.postavljenih
-        copy.figurice = self.figurice.copy() #hard copy
+        copy.figurice = self.figurice.copy()  # hard copy
         return copy
 
-        
     def razveljavi(self):
         """ Razveljavi zadnjo potezo. """
         i,j,a,b,c,d,kdonapotezi = self.zgodovina.pop(-1)
