@@ -319,12 +319,11 @@ class tkmlin():
         """
         besedilo2.set(message2)
 
-
     def newgamerac(self):
-        """moznosti izbire igre proti racunalniku z globino 2. """
+        """Default game start method"""
         self.igra = Igra()
         igralec1 = Igralec(self, self.barva1, self.ime_igralec1)
-        igralec2 = Racunalnik(self, self.barva2,self.ime_igralec2,AlphaBetta(4))
+        igralec2 = Racunalnik(self, self.barva2,self.ime_igralec2,AlphaBetta(4, hevristika_basic))
         self.nova_igra(igralec1, igralec2)
 
     def nova_igra(self, igralec1, igralec2):
@@ -348,19 +347,18 @@ class tkmlin():
 
         def creategame():
             """Pomozna funkcija ki naredi novo igro"""
-            self.ime_igralec1 = ime1.get()
-            self.ime_igralec2 = ime2.get()
+            ime_igralec1 = ime1.get()
+            ime_igralec2 = ime2.get()
             if igralec1_clovek.get():
-                igralec1 = Igralec(self, self.barva1, self.ime_igralec1)
+                igralec1 = Igralec(self, self.barva1, ime_igralec1)
             else:
-                igralec1 = Racunalnik(self, self.barva1, self.ime_igralec1, AlphaBetta(var.get()))
+                igralec1 = Racunalnik(self, self.barva1, ime_igralec1, AlphaBetta(var.get(), hevristika_basic))  # TODO
             if igralec2_clovek.get():
-                igralec2 = Igralec(self, self.barva2, self.ime_igralec2)
+                igralec2 = Igralec(self, self.barva2, ime_igralec2)
             else:
-                igralec2 = Racunalnik(self, self.barva2, self.ime_igralec2, AlphaBetta(var2.get()))
+                igralec2 = Racunalnik(self, self.barva2, ime_igralec2, AlphaBetta(var2.get(), hevristika_basic))  # TODO
             self.nova_igra(igralec1,igralec2)
             nov_game.destroy()
-
 
         #ustvari novo okno
         nov_game = Toplevel()
@@ -595,8 +593,7 @@ class Racunalnik():
 
     def igraj_potezo(self):
         """Racunalnik izvede potezo ki jo pridobi s pomocjo algoritma"""
-        self.mislec = threading.Thread(target= lambda: self.algoritem.izracunaj_potezo(self.gui.igra.kopija(),
-                                                                                       hevristika_basic))
+        self.mislec = threading.Thread(target= lambda: self.algoritem.izracunaj_potezo(self.gui.igra.kopija()))
         self.mislec.start()
         self.gui.plosca.after(500, self.preveri_potezo)
 
