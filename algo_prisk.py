@@ -4,19 +4,18 @@ import random
 
 class MiniMax:
     """Vrne tri argumente (kam, od kje),(kaj jemljemo),vrednost poteze v obliki poteze"""
-    def __init__(self, globina):
+    def __init__(self, globina, hevristika):
         self.globina = int(globina)
         self.igra = None
         self.jaz = None
         self.poteza = None  #sem algoritem shrani potezo ko jo naredi
         self.jemljem = None
-        self.hevristika = None
+        self.hevristika = hevristika
     ZMAGA = 1000000  # Mora biti vsaj 10^6
     NESKONCNO = ZMAGA + 1  # Več kot zmaga
 
-    def izracunaj_potezo(self, igra, hevristika):
+    def izracunaj_potezo(self, igra):
         self.igra = igra
-        self.hevristika = hevristika
         self.jaz = self.igra.na_potezi
         self.poteza = None
         self.jemljem = None
@@ -102,19 +101,18 @@ class MiniMax:
 
 class AlphaBetta:
     """Vrne tri argumente (kam, od kje),(kaj jemljemo),vrednost poteze v obliki poteze"""
-    def __init__(self,globina):
+    def __init__(self, globina, hevristika):
         self.globina = int(globina)
         self.igra = None
         self.jaz = None
         self.poteza = None  #sem algoritem shrani potezo ko jo naredi
         self.jemljem = None
-        self.hevristika = None
+        self.hevristika = hevristika
     ZMAGA = 1000000  # Mora biti vsaj 10^6
     NESKONCNO = ZMAGA + 1  # Več kot zmaga
 
-    def izracunaj_potezo(self, igra, hevristika):
+    def izracunaj_potezo(self, igra):
         self.igra = igra
-        self.hevristika = hevristika
         self.jaz = self.igra.na_potezi
         self.poteza = None
         self.jemljem = None
