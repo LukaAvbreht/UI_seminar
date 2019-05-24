@@ -1,34 +1,35 @@
 __author__ = 'LukaAvbreht'
 from tkinter import *
 from igra import *
-from PIL import ImageTk,Image
+from PIL import ImageTk, Image
 import threading
 import random
-from algo_prisk import AlphaBetta,MiniMax
+from algo_prisk import AlphaBetta, MiniMax, PureMonteCarloTreeSearch
 from hevristike import hevristika_basic
 
+
 class tkmlin():
-    def __init__(self,master):
+    def __init__(self, master):
         self.master = master
         self.master.minsize(width=1300, height=700)
-        self.bg = 'LightYellow2'  #'LemonChiffon'
-        self.zmag_okno = None  #Zmagovalno okno
-        self.about = None  #okno o igri
-        self.help = None  #okno za pomoč
+        self.bg = 'LightYellow2'  # 'LemonChiffon'
+        self.zmag_okno = None  # Zmagovalno okno
+        self.about = None  # okno o igri
+        self.help = None  # okno za pomoč
 
-        #nastavi minimalne sirine stolpcev v polju
+        # nastavi minimalne sirine stolpcev v polju
         for stolpec in range(11):
             self.master.grid_columnconfigure(stolpec, minsize=100)
 
         self.igra = Igra()
 
-        #tukaj si bos lahko izbiral kakšne barve bojo tvoji žetoni
+        # tukaj si bos lahko izbiral kakšne barve bojo tvoji žetoni
         self.barva1 = 'forest green'
         self.barva1hover = 'yellow green'
         self.barva2 = 'chocolate1'
         self.barva2hover = 'tan1'
 
-        #igralca, ki igrata igro
+        # igralca, ki igrata igro
         self.ime_igralec1 = 'Zeleni'
         self.ime_igralec2 = 'Oranžni'
 
@@ -37,24 +38,26 @@ class tkmlin():
 
         self.canvas1 = Canvas(master, width=300, height=600)  # ,bg=self.bg)
         self.canvas2 = Canvas(master, width=300, height=600)  # ,bg=self.bg)
-        self.canvas1.grid(row=3, column=0, columnspan=2, sticky=N+S+E+W)
-        self.canvas2.grid(row=3, column=9, columnspan=2, sticky=N+S+E+W)
+        self.canvas1.grid(row=3, column=0, columnspan=2, sticky=N + S + E + W)
+        self.canvas2.grid(row=3, column=9, columnspan=2, sticky=N + S + E + W)
 
         self.play1ids = []
         self.play2ids = []
 
-        self.play1mrtvi = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221), (221, 221)]
-        self.play2mrtvi = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221), (221, 221)]
+        self.play1mrtvi = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221),
+                           (221, 221)]
+        self.play2mrtvi = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221),
+                           (221, 221)]
 
         self.strime1 = StringVar(self.master, value=self.ime_igralec1)
         Label(self.master, textvariable=self.strime1, font=("Helvetica", 20)).grid(row=1, column=0, columnspan=2)
         self.strime2 = StringVar(self.master, value=self.ime_igralec2)
         Label(self.master, textvariable=self.strime2, font=("Helvetica", 20)).grid(row=1, column=9, columnspan=2)
 
-        #kdo je na potezi, sinhronizirano z logiko igre
+        # kdo je na potezi, sinhronizirano z logiko igre
         self.na_potezi = None
 
-        #meni za gumbe
+        # meni za gumbe
         menu = Menu(master)
         master.config(menu=menu)
 
@@ -67,11 +70,11 @@ class tkmlin():
         menu_test.add_command(label="About", command=self.about_okno)
         menu_test.add_command(label="Help", command=self.help_okno)
 
-        #Igralna self.plosca
-        self.plosca = Canvas(master, width=700, height=700, bg=self.bg, borderwidth=10, relief=SUNKEN)  #SUNKEN,RAISED
-        self.plosca.grid(row=1, column=2, rowspan=7, columnspan=7, sticky=N+S+E+W)
+        # Igralna self.plosca
+        self.plosca = Canvas(master, width=700, height=700, bg=self.bg, borderwidth=10, relief=SUNKEN)  # SUNKEN,RAISED
+        self.plosca.grid(row=1, column=2, rowspan=7, columnspan=7, sticky=N + S + E + W)
 
-        #Slovar, ki ima za kljuce id gumbov in jih poveze z poljem v igri ter obraten slovar
+        # Slovar, ki ima za kljuce id gumbov in jih poveze z poljem v igri ter obraten slovar
         self.id_polje = dict()
         self.polje_id = dict()
 
@@ -89,7 +92,8 @@ class tkmlin():
         for i in range(7):
             for j in range(7):
                 if self.igra.plosca[i][j] is None:
-                    x = self.plosca.create_oval((100*j+50)-25, (100*i+50)-25, (100*j+50)+25, (100*i+50)+25, outline="")
+                    x = self.plosca.create_oval((100 * j + 50) - 25, (100 * i + 50) - 25, (100 * j + 50) + 25,
+                                                (100 * i + 50) + 25, outline="")
                     self.id_polje[x] = (i, j)
                     self.polje_id[(i, j)] = x
 
@@ -108,26 +112,35 @@ class tkmlin():
 
     def postavi_stranske(self):
         """Na stranska polja postavi figure, ki jih mora igralec postaviti na ploskev."""
-        slovarzanastran = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221), (221, 221)]
+        slovarzanastran = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221),
+                           (221, 221)]
         for j in slovarzanastran:
-            x = self.canvas1.create_oval(j[0]-25, j[1]-25, j[0]+25, j[1]+25, outline="", fill=self.barva1)
+            x = self.canvas1.create_oval(j[0] - 25, j[1] - 25, j[0] + 25, j[1] + 25, outline="", fill=self.barva1)
             self.play1ids.append(x)
         for j in slovarzanastran:
-            x = self.canvas2.create_oval(j[0]-25, j[1]-25, j[0]+25, j[1]+25, outline="", fill=self.barva2)
+            x = self.canvas2.create_oval(j[0] - 25, j[1] - 25, j[0] + 25, j[1] + 25, outline="", fill=self.barva2)
             self.play2ids.append(x)
 
-    def postavi_stranske2(self,playerbarva):
+    def postavi_stranske2(self, playerbarva):
         """Metoda ki postavi na polje ob straneh figuro, ko je ta odstranjena iz igre."""
         if playerbarva == self.barva1:
-            self.canvas1.create_oval(self.play1mrtvi[0][0]-25, self.play1mrtvi[0][1]+300-25, self.play1mrtvi[0][0]+25, self.play1mrtvi[0][1]+300+25, outline="", fill=self.barva1)
-            self.canvas1.create_line(self.play1mrtvi[0][0]-25, self.play1mrtvi[0][1]+300-25, self.play1mrtvi[0][0]+25, self.play1mrtvi[0][1]+300+25, width=4)
-            self.canvas1.create_line(self.play1mrtvi[0][0]-25, self.play1mrtvi[0][1]+300+25, self.play1mrtvi[0][0]+25, self.play1mrtvi[0][1]+300-25, width=4)
-            del(self.play1mrtvi[0])
+            self.canvas1.create_oval(self.play1mrtvi[0][0] - 25, self.play1mrtvi[0][1] + 300 - 25,
+                                     self.play1mrtvi[0][0] + 25, self.play1mrtvi[0][1] + 300 + 25, outline="",
+                                     fill=self.barva1)
+            self.canvas1.create_line(self.play1mrtvi[0][0] - 25, self.play1mrtvi[0][1] + 300 - 25,
+                                     self.play1mrtvi[0][0] + 25, self.play1mrtvi[0][1] + 300 + 25, width=4)
+            self.canvas1.create_line(self.play1mrtvi[0][0] - 25, self.play1mrtvi[0][1] + 300 + 25,
+                                     self.play1mrtvi[0][0] + 25, self.play1mrtvi[0][1] + 300 - 25, width=4)
+            del (self.play1mrtvi[0])
         else:
-            self.canvas2.create_oval(self.play2mrtvi[0][0]-25, self.play2mrtvi[0][1]+300-25, self.play2mrtvi[0][0]+25, self.play2mrtvi[0][1]+300+25, outline="", fill=self.barva2)
-            self.canvas2.create_line(self.play2mrtvi[0][0]-25, self.play2mrtvi[0][1]+300-25, self.play2mrtvi[0][0]+25, self.play2mrtvi[0][1]+300+25, width=4)
-            self.canvas2.create_line(self.play2mrtvi[0][0]-25, self.play2mrtvi[0][1]+300+25, self.play2mrtvi[0][0]+25, self.play2mrtvi[0][1]+300-25, width=4)
-            del(self.play2mrtvi[0])
+            self.canvas2.create_oval(self.play2mrtvi[0][0] - 25, self.play2mrtvi[0][1] + 300 - 25,
+                                     self.play2mrtvi[0][0] + 25, self.play2mrtvi[0][1] + 300 + 25, outline="",
+                                     fill=self.barva2)
+            self.canvas2.create_line(self.play2mrtvi[0][0] - 25, self.play2mrtvi[0][1] + 300 - 25,
+                                     self.play2mrtvi[0][0] + 25, self.play2mrtvi[0][1] + 300 + 25, width=4)
+            self.canvas2.create_line(self.play2mrtvi[0][0] - 25, self.play2mrtvi[0][1] + 300 + 25,
+                                     self.play2mrtvi[0][0] + 25, self.play2mrtvi[0][1] + 300 - 25, width=4)
+            del (self.play2mrtvi[0])
 
     def izpisi(self):
         """Namenjeno porogramerju"""
@@ -147,22 +160,22 @@ class tkmlin():
         else:
             self.na_potezi = self.igralec2
         if len(self.igra.veljavne_poteze()) == 0:
-                return self.zmagovalno_okno(self.nasprotnik())
+            return self.zmagovalno_okno(self.nasprotnik())
         self.textbox.set("Na potezi je {0}!".format(self.na_potezi.ime))
         if type(self.na_potezi) == Igralec:
             self.na_potezi.ponastavi()
-        elif type(self.na_potezi) == Racunalnik: #Če je na potezi računalnik mu povemo, da naj odigra potezo.
+        elif type(self.na_potezi) == Racunalnik:  # Če je na potezi računalnik mu povemo, da naj odigra potezo.
             self.na_potezi.igraj_potezo()
 
-    def klik(self,event):
+    def klik(self, event):
         """Metoda, ki vrne id polja na katerega je pritisnil uporabnik."""
         x = event.x
         y = event.y
-        kam = self.plosca.find_overlapping(x-25, y-25, x+25, y+25)
+        kam = self.plosca.find_overlapping(x - 25, y - 25, x + 25, y + 25)
         znacka = False
         for id in kam:
             if id in self.id_polje:
-                znacka = True #nam pove, da smo zadeli nekaj
+                znacka = True  # nam pove, da smo zadeli nekaj
                 if self.DEFCON == 0:
                     self.textbox.set("Igre je konec. Za novo igro izberi meni Igra in Nova igra!")
                 elif self.DEFCON == 1:
@@ -176,11 +189,11 @@ class tkmlin():
                     self.na_potezi.jemljem()
                 elif self.DEFCON == 4:
                     self.textbox.set("Igre je konec. Za novo igro izberi meni Igra in Nova igra!")
-                    znacka = True #Ker so vsi kliki ignorirani!
+                    znacka = True  # Ker so vsi kliki ignorirani!
                 else:
                     pass
-        if znacka == False: #kliknili smo kar nekam, resetirajmo na zacetek poteze
-            if self.DEFCON in [1,2]: #V primeru, da lahko resetiramo klik
+        if znacka == False:  # kliknili smo kar nekam, resetirajmo na zacetek poteze
+            if self.DEFCON in [1, 2]:  # V primeru, da lahko resetiramo klik
                 self.DEFCON = 1
                 if self.igra.faza == 0:
                     self.textbox.set("{0}: Izberi polje kamor želiš postaviti svoj žeton!".format(self.na_potezi.ime))
@@ -196,15 +209,16 @@ class tkmlin():
             else:
                 pass
 
-    def zmagovalno_okno(self, zmagovalec = False):
+    def zmagovalno_okno(self, zmagovalec=False):
         """Napravi zmagovalno okno, ko se igra zaključi"""
+
         def unici():
             """Zapre pomozno okno z podatki o zmagi"""
             self.zmag_okno.destroy()
             self.zmag_okno = None
 
         self.DEFCON = 4
-        #zablokiramo polje
+        # zablokiramo polje
         if self.zmag_okno != None:
             self.zmag_okno.lift()
             return
@@ -234,6 +248,7 @@ class tkmlin():
 
     def about_okno(self):
         """Napravi about okno, ko uporabnik pritisne na gumb namenjen temu oknu. """
+
         def unici():
             """Zapre pomozno okno z podatki o projektu. """
             self.about.destroy()
@@ -280,6 +295,7 @@ class tkmlin():
 
     def help_okno(self):
         """Napravi help okno, ko uporabnik pritisne na gumb namenjen temu oknu."""
+
         def unici():
             """Zapre pomozno okno za pomoč."""
             self.help.destroy()
@@ -323,7 +339,7 @@ class tkmlin():
         """Default game start method"""
         self.igra = Igra()
         igralec1 = Igralec(self, self.barva1, self.ime_igralec1)
-        igralec2 = Racunalnik(self, self.barva2,self.ime_igralec2,AlphaBetta(4, hevristika_basic))
+        igralec2 = Racunalnik(self, self.barva2, self.ime_igralec2, AlphaBetta(4, hevristika_basic))
         self.nova_igra(igralec1, igralec2)
 
     def nova_igra(self, igralec1, igralec2):
@@ -345,6 +361,16 @@ class tkmlin():
         """Napravi okno, kjer si lahko izberemo nastavitve za novo igro, ter jo tako zacnemo"""
         # TODO kle bo treba dodat razlicne algoritme in razlicne hevristike
 
+        alg_options = {"Alpha Betta": AlphaBetta, "Mini max": MiniMax, "Pure MCTS": PureMonteCarloTreeSearch}
+
+        zahtevnost_timelimit = {
+            1: (100, 1000),
+            2: (500, 5000),
+            3: (1000, 10000),
+            4: (50000, 50000),
+            5: (100000, 100000)
+        }
+
         def creategame():
             """Pomozna funkcija ki naredi novo igro"""
             ime_igralec1 = ime1.get()
@@ -352,32 +378,53 @@ class tkmlin():
             if igralec1_clovek.get():
                 igralec1 = Igralec(self, self.barva1, ime_igralec1)
             else:
-                igralec1 = Racunalnik(self, self.barva1, ime_igralec1, AlphaBetta(var.get(), hevristika_basic))  # TODO
+                algo = alg_options[var_alg_1.get()]
+                tezavnost = var.get()
+                if var_alg_1.get() in ["Pure MCTS"]:
+                    tezavnost = zahtevnost_timelimit[tezavnost]
+                    algo = algo(*tezavnost)
+                else:
+                    algo = algo(tezavnost, hevristika_basic)
+                igralec1 = Racunalnik(self, self.barva1, ime_igralec1, algo)  # TODO
             if igralec2_clovek.get():
                 igralec2 = Igralec(self, self.barva2, ime_igralec2)
             else:
-                igralec2 = Racunalnik(self, self.barva2, ime_igralec2, AlphaBetta(var2.get(), hevristika_basic))  # TODO
-            self.nova_igra(igralec1,igralec2)
+                algo = alg_options[var_alg_2.get()]
+                tezavnost = var2.get()
+                if var_alg_2.get() in ["Pure MCTS"]:
+                    tezavnost = zahtevnost_timelimit[tezavnost]
+                    algo = algo(*tezavnost)
+                else:
+                    algo = algo(tezavnost, hevristika_basic)
+                igralec2 = Racunalnik(self, self.barva2, ime_igralec2, algo)  # TODO
+            self.nova_igra(igralec1, igralec2)
             nov_game.destroy()
 
-        #ustvari novo okno
+        # ustvari novo okno
         nov_game = Toplevel()
         nov_game.grab_set()
-        nov_game.title('Nine Men\'s Morris - nova igra')     #nastavi ime okna
+        nov_game.title('Nine Men\'s Morris - nova igra')  # nastavi ime okna
         nov_game.resizable(width=False, height=False)
 
         for stolpec in range(4):
             nov_game.grid_columnconfigure(stolpec, minsize=100)
 
-        Label(nov_game, text='Nastavitve nove igre', font=('Times',20)).grid(column=0, row=0, columnspan=5)
+        for vrstica in range(11):
+            nov_game.grid_rowconfigure(vrstica, minsize=15)
 
-        #nastavitve igralcev
-        Label(nov_game, text='Igralec 1', font=('Times',12)).grid(column=1, row=1)
-        Label(nov_game, text='Igralec 2', font=('Times',12)).grid(column=3, row=1)
+        Label(nov_game, text='Nastavitve nove igre', font=('Times', 20)).grid(column=0, row=0, columnspan=5)
+
+        # nastavitve igralcev
+        Label(nov_game, text='Igralec 1', font=('Times', 12)).grid(column=1, row=1)
+        Label(nov_game, text='Igralec 2', font=('Times', 12)).grid(column=3, row=1)
         Label(nov_game, text="Tip igralca:").grid(row=2, column=0, rowspan=2, sticky="E")
         Label(nov_game, text="Tip igralca:").grid(row=2, column=2, rowspan=2, sticky="E")
-        Label(nov_game, text="Težavnost:").grid(row=5, column=0, rowspan=2, sticky="E")
+        Label(nov_game, text="Težavnost:").grid(row=5, column=0, rowspan=2, sticky=E)
         Label(nov_game, text="Težavnost:").grid(row=5, column=2, rowspan=2, sticky="E")
+        Label(nov_game, text="Algoritem:").grid(row=6, column=0, rowspan=2, sticky="E")
+        Label(nov_game, text="Algoritem:").grid(row=6, column=2, rowspan=2, sticky="E")
+        Label(nov_game, text="Hevristika:").grid(row=7, column=0, rowspan=2, sticky="E") #TODO
+        Label(nov_game, text="Hevristika:").grid(row=7, column=2, rowspan=2, sticky="E")
 
         igralec1_clovek = BooleanVar()
         igralec1_clovek.set(True)
@@ -396,23 +443,37 @@ class tkmlin():
         option2 = OptionMenu(nov_game, var2, 1, 2, 3, 4, 5)
         option2.grid(row=5, column=3)
 
+        var_alg_1 = StringVar(nov_game)
+        var_alg_1.set(list(alg_options.keys())[0])
+        option_alg_1 = OptionMenu(nov_game, var_alg_1, *alg_options.keys())
+        option_alg_1.grid(row=6, column=1)
+
+        var_alg_2 = StringVar(nov_game)
+        var_alg_2.set(list(alg_options.keys())[2])
+        option_alg_2 = OptionMenu(nov_game, var_alg_2, *alg_options.keys())
+        option_alg_2.grid(row=6, column=3)
+
         for besedilo, vrednost, spremenljivka, vrstica, stolpec in igralci:
-            Radiobutton(nov_game, text=besedilo, variable=spremenljivka, value=vrednost, width=10, anchor="w")\
+            Radiobutton(nov_game, text=besedilo, variable=spremenljivka, value=vrednost, width=10, anchor="w") \
                 .grid(row=vrstica, column=stolpec)
 
-        Label(nov_game, text="Ime igralca:").grid(row=7, column=0, sticky="E")
-        Label(nov_game, text="Ime igralca:").grid(row=7, column=2, sticky="E")
+        Label(nov_game, text="Ime igralca:").grid(row=9, column=0, sticky="E")
+        Label(nov_game, text="Ime igralca:").grid(row=9, column=2, sticky="E")
 
         ime1 = Entry(nov_game, font=('Times', 12), width=10)
-        ime1.grid(row=7, column=1)
+        ime1.grid(row=9, column=1)
         ime1.insert(0, self.ime_igralec1)
 
         ime2 = Entry(nov_game, font=('Times', 12), width=10)
-        ime2.grid(row=7, column=3)
+        ime2.grid(row=9, column=3)
         ime2.insert(0, self.ime_igralec2)
 
-        Button(nov_game, text="Prekliči", width=20, height=2, command=lambda: nov_game.destroy()).grid(row=8, column=0, columnspan=2, sticky=N+W+E+S)
-        Button(nov_game, text="Zacni igro", width=20, height=2, command=lambda: creategame()).grid(row=8, column=2, columnspan=2, sticky=N+W+E+S)
+        Button(nov_game, text="Prekliči", width=20, height=2, command=lambda: nov_game.destroy()).grid(row=10, column=0,
+                                                                                                       columnspan=2,
+                                                                                                       sticky=N + W + E + S)
+        Button(nov_game, text="Zacni igro", width=20, height=2, command=lambda: creategame()).grid(row=10, column=2,
+                                                                                                   columnspan=2,
+                                                                                                   sticky=N + W + E + S)
 
     def ponastavi(self):
         """pripravi polje za novo igro"""
@@ -420,8 +481,10 @@ class tkmlin():
             self.plosca.itemconfig(i, fill="")
         self.canvas1.delete(ALL)
         self.canvas2.delete(ALL)
-        self.play1mrtvi = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221), (221, 221)]
-        self.play2mrtvi = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221), (221, 221)]
+        self.play1mrtvi = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221),
+                           (221, 221)]
+        self.play2mrtvi = [(85, 85), (153, 85), (221, 85), (85, 153), (153, 153), (221, 153), (85, 221), (153, 221),
+                           (221, 221)]
         self.play1ids = []
         self.play2ids = []
         self.strime1.set('')
@@ -440,10 +503,10 @@ class tkmlin():
             self.plosca.itemconfig(id_1, fill=self.na_potezi.barva)
             if self.na_potezi.barva == self.barva1:
                 self.canvas1.itemconfig(self.play1ids[0], fill="")
-                del(self.play1ids[0])
+                del (self.play1ids[0])
             else:
                 self.canvas2.itemconfig(self.play2ids[0], fill="")
-                del(self.play2ids[0])
+                del (self.play2ids[0])
             self.igra.poteza(prvopolje[0], prvopolje[1])
             if self.igra.mlin:
                 self.DEFCON = 3
@@ -454,15 +517,15 @@ class tkmlin():
             self.plosca.itemconfig(id_1, fill="")
             self.plosca.itemconfig(id_2, fill=self.na_potezi.barva)
             self.igra.poteza(drugopolje[0], drugopolje[1], prvopolje[0], prvopolje[1])
-            if self.igra.mlin: #zahtevamo, da pobere žeton
+            if self.igra.mlin:  # zahtevamo, da pobere žeton
                 self.DEFCON = 3
                 self.textbox.set("Izberi žeton, ki ga boš pobral!")
             else:
-                #se pripravimo na naslednjo potezo
+                # se pripravimo na naslednjo potezo
                 self.DEFCON = 1
                 self.zamenjaj_na_potezi()
 
-    def izvedi_posebno_potezo(self,id_1,id_2=False):
+    def izvedi_posebno_potezo(self, id_1, id_2=False):
         """Metoda, ki jo uporabi računalniški igralec v primeru da mora po koncani potezi jemati zeton.
         Drugace enaka kot metoda izvedi_potezo, le da na koncu ne zamnejamo poteze ampak cakamo da racunalnik poklice se
         funkcijo vzami zeton. """
@@ -470,15 +533,15 @@ class tkmlin():
             prvopolje = self.id_polje[id_1]
         if id_2 != False:
             drugopolje = self.id_polje[id_2]
-        if id_2==False:
+        if id_2 == False:
             self.plosca.itemconfig(id_1, fill=self.na_potezi.barva)
             self.igra.poteza(prvopolje[0], prvopolje[1])
             if self.na_potezi.barva == self.barva1:
                 self.canvas1.itemconfig(self.play1ids[0], fill="")
-                del(self.play1ids[0])
+                del (self.play1ids[0])
             else:
                 self.canvas2.itemconfig(self.play2ids[0], fill="")
-                del(self.play2ids[0])
+                del (self.play2ids[0])
         else:
             self.plosca.itemconfig(id_1, fill="")
             self.plosca.itemconfig(id_2, fill=self.na_potezi.barva)
@@ -488,16 +551,18 @@ class tkmlin():
         """Metoda ki se poklice ko igralec doseze mlin. Odstrani figurico iz racunalniskega umesnika in pa iz logike igre"""
         self.plosca.itemconfig(id_1, fill="")
         self.postavi_stranske2(self.nasprotnik().barva)
-        self.igra.odstrani_figurico(self.id_polje[id_1][0],self.id_polje[id_1][1])
+        self.igra.odstrani_figurico(self.id_polje[id_1][0], self.id_polje[id_1][1])
         self.DEFCON = 1
-        if self.igra.faza != 0: #PREVERI, ČE SMO ŠTEVILO ŽETONOV IGRALCA SPRAVILI POD 3
+        if self.igra.faza != 0:  # PREVERI, ČE SMO ŠTEVILO ŽETONOV IGRALCA SPRAVILI POD 3
             for key, value in self.igra.figurice.items():
                 if self.igra.figurice[key] < 3:
                     self.zmagovalno_okno(self.na_potezi)
         self.zamenjaj_na_potezi()
 
+
 class Igralec():
     """Človeski igralec. Primer uporabe znotraj nase igre: self.igralec1 = Igralec(self, 'Black', 'Marjan')"""
+
     def __init__(self, tkmlin, barva, ime):
         """Shrani klike igralca in doloci igralno polje kjer igralec igra igro."""
         self.gui = tkmlin
@@ -539,19 +604,19 @@ class Igralec():
                 if self.gui.igra.je_veljavna(koord_3, koord_4, koord_1, koord_2):
                     self.gui.izvedi_potezo(self.prvi_klik, self.drugi_klik)
                 else:
-                    #nismo izvedli veljavne poteze, vrnemo se na zacetek poteze!
+                    # nismo izvedli veljavne poteze, vrnemo se na zacetek poteze!
                     self.gui.DEFCON = 1
                     self.gui.plosca.itemconfig(self.prvi_klik, fill=self.gui.na_potezi.barva)
                     self.ponastavi()
                     self.gui.textbox.set("{0}: Izberi svoj žeton!".format(self.ime))
-                    
+
             else:
-                #preveri ali je izbran zeton sploh nas
+                # preveri ali je izbran zeton sploh nas
                 koord_1 = self.gui.id_polje[self.prvi_klik][0]
                 koord_2 = self.gui.id_polje[self.prvi_klik][1]
                 if self.gui.igra.plosca[koord_1][koord_2] == self.gui.igra.na_potezi:
                     self.gui.DEFCON = 2
-                    id_1 = self.gui.polje_id[(koord_1,koord_2)]
+                    id_1 = self.gui.polje_id[(koord_1, koord_2)]
                     self.gui.textbox.set("{0}, izberi kam želiš ta žeton premakniti!".format(self.ime))
                     if self.gui.na_potezi.barva == self.gui.barva1:
                         self.gui.plosca.itemconfig(id_1, fill=self.gui.barva1hover)
@@ -562,8 +627,10 @@ class Igralec():
                     self.gui.DEFCON = 1
                     self.gui.textbox.set("Nisi izbral svojega žetona. Izberi svoj žeton {0}!".format(self.ime))
 
+
 class Racunalnik():
     """Racunalniski igralec, ki izracuna potezo ter jo odigra"""
+
     def __init__(self, gui, barva, ime, Algoritem):
         self.gui = gui
         self.ime = ime
@@ -578,22 +645,22 @@ class Racunalnik():
 
     def ponastavi(self):
         """ Ponastavi klike. """
-        #Ker je to računalnik bi lahko metoda naredila le pass
+        # Ker je to računalnik bi lahko metoda naredila le pass
         self.prvi_klik = None
         self.drugi_klik = None
         self.tretji_klik = None
 
     def jemljem(self):
-        #racunalnik vse ignorira
+        # racunalnik vse ignorira
         pass
 
     def uporabnikova_poteza(self):
-        #racunalnik vse ignorira
+        # racunalnik vse ignorira
         pass
 
     def igraj_potezo(self):
         """Racunalnik izvede potezo ki jo pridobi s pomocjo algoritma"""
-        self.mislec = threading.Thread(target= lambda: self.algoritem.izracunaj_potezo(self.gui.igra.kopija()))
+        self.mislec = threading.Thread(target=lambda: self.algoritem.izracunaj_potezo(self.gui.igra.kopija()))
         self.mislec.start()
         self.gui.plosca.after(500, self.preveri_potezo)
 
@@ -609,7 +676,7 @@ class Racunalnik():
                 else:
                     id2 = self.gui.polje_id[(self.algoritem.poteza[0]), (self.algoritem.poteza[1])]
                     id3 = self.gui.polje_id[(self.algoritem.jemljem[0]), (self.algoritem.jemljem[1])]
-                    self.gui.izvedi_posebno_potezo(id2)  #ista k navadna sam da na koncu ne menja poteze
+                    self.gui.izvedi_posebno_potezo(id2)  # ista k navadna sam da na koncu ne menja poteze
                     self.gui.plosca.after(300, self.gui.vzami_zeton(id3))
             else:
                 if self.algoritem.jemljem == ("PRAZNO", "PRAZNO"):
@@ -633,5 +700,5 @@ if __name__ == "__main__":
     root.wm_title('Nine Men\'s Morris')
     root.resizable(width=FALSE, height=FALSE)
     okno = tkmlin(root)
-    okno.newgamerac()  #Avtomatsko začne igro z računalnikom, ko program odpremo.
+    okno.newgamerac()  # Avtomatsko začne igro z računalnikom, ko program odpremo.
     root.mainloop()
