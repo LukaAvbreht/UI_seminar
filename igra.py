@@ -1,5 +1,7 @@
 __author__ = 'LukaAvbreht'
 
+from copy import deepcopy
+
 IGRALEC_ENA = "B"
 IGRALEC_DVA = "C"
 
@@ -295,3 +297,53 @@ class Igra():
                         self.stanje = ("ZMAGA", IGRALEC_DVA)
                     else:
                         self.stanje = ("ZMAGA", IGRALEC_ENA)
+
+
+class Igra_mcts_interface(Igra):
+    def __init__(self, kopija, igralec):
+        super(Igra_mcts_interface, self).__init__()
+
+        self.trenutni_igralec = igralec
+        self.plosca = kopija.plosca
+        self.na_potezi = kopija.na_potezi
+        self.faza = kopija.faza
+        self.postavljenih = kopija.postavljenih
+        self.figurice = kopija.figurice.copy()
+
+    def getPossibleActions(self):
+        poteze = self.veljavne_poteze()
+        veljavne = list()
+        for pot in poteze:
+            self.je_veljavna(*pot)
+            self.poteza(*pot)
+            if self.mlin is True:
+                jemanja = self.veljavna_jemanja()
+                for jem in jemanja:
+                    veljavne.append(pot + jem)
+            else:
+                veljavne.append(pot + ("PRAZNO", "PRAZNO"))
+            self.razveljavi()
+        return veljavne
+
+    def takeAction(self, action):
+        nova_poz = deepcopy(self)
+        if len(action) == 6:
+            pot,jem = action[:4],action[4:]
+            nova_poz.poteza(*pot)
+            nova_poz.odstrani_figurico(*jem)
+        elif len(action) == 4:
+            nova_poz.poteza(*action)
+        return nova_poz
+
+    def isTerminal(self):
+        return self.stanje[0] == "ZMAGA"
+
+    def getReward(self):
+        if self.trenutni_igralec == self.stanje[1]:
+            return 10
+        else:
+            return 0
+
+    def __eq__(self, other):
+        return self.plosca == other.plosca and self.faza == other.faza and self.na_potezi == other.na_potezi
+
