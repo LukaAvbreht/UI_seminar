@@ -60,7 +60,6 @@ def game_playout(player1, player2):
             # print(igra.stanje)
 
         elif igra.na_potezi == P2:
-            time_start = time.time()
             player2.izracunaj_potezo(igra.kopija())
 
             igra.poteza(*player2.poteza)

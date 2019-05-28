@@ -238,7 +238,7 @@ class PureMonteCarloTreeSearch:
         self.poteza = None
         self.jemljem = None
         poteza = self.pure_mcts()
-        print(poteza)
+        # print(poteza)
         self.igra = None
         self.jaz = None
         self.poteza = poteza[:4]
