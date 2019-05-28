@@ -2,6 +2,7 @@ from igra import *
 from algo_prisk import MiniMax, AlphaBetta, PureMonteCarloTreeSearch
 from hevristike import hevristika_basic
 from pprint import pprint
+import time
 
 MAX_MOVE_NUM = 10**3
 
@@ -44,6 +45,7 @@ def game_playout(player1, player2):
         if stevilo_potez > MAX_MOVE_NUM:
             print("Zaciklal smo se")
             return [0, 0]
+
         stevilo_potez += 1
         if igra.na_potezi == P1:
             # izracuna potezo
@@ -57,6 +59,7 @@ def game_playout(player1, player2):
             # print(igra.stanje)
 
         elif igra.na_potezi == P2:
+            time_start = time.time()
             player2.izracunaj_potezo(igra.kopija())
 
             igra.poteza(*player2.poteza)
@@ -64,6 +67,7 @@ def game_playout(player1, player2):
             if player2.jemljem[0] != "PRAZNO":
                 igra.odstrani_figurico(*player2.jemljem)
 
+            print(player2.poteza," in ",time.time()-time_start)
             # print(igra.stanje)
         else:
             raise Exception("Nemoramo odigrati poteze igralca {0}".format(igra.na_potezi))
@@ -80,9 +84,10 @@ if __name__ == '__main__':
     hev1 = hevristika_basic
 
     alg2 = PureMonteCarloTreeSearch
+    time_lim = 5000
 
     player1 = alg1(depth1, hev1)
-    player2 = alg2()
+    player2 = alg2(timeLimit=time_lim)
 
     AutomaticTester(player1, player2, 5)
 

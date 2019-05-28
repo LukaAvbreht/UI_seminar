@@ -364,11 +364,11 @@ class tkmlin():
         alg_options = {"Alpha Betta": AlphaBetta, "Mini max": MiniMax, "Pure MCTS": PureMonteCarloTreeSearch}
 
         zahtevnost_timelimit = {
-            1: (100, 1000),
-            2: (500, 5000),
-            3: (1000, 10000),
-            4: (50000, 50000),
-            5: (100000, 100000)
+            1: 100,
+            2: 500,
+            3: 1000,
+            4: 50000,
+            5: 100000
         }
 
         def creategame():
@@ -382,7 +382,7 @@ class tkmlin():
                 tezavnost = var.get()
                 if var_alg_1.get() in ["Pure MCTS"]:
                     tezavnost = zahtevnost_timelimit[tezavnost]
-                    algo = algo(*tezavnost)
+                    algo = algo(tezavnost)
                 else:
                     algo = algo(tezavnost, hevristika_basic)
                 igralec1 = Racunalnik(self, self.barva1, ime_igralec1, algo)  # TODO
@@ -393,7 +393,7 @@ class tkmlin():
                 tezavnost = var2.get()
                 if var_alg_2.get() in ["Pure MCTS"]:
                     tezavnost = zahtevnost_timelimit[tezavnost]
-                    algo = algo(*tezavnost)
+                    algo = algo(tezavnost)
                 else:
                     algo = algo(tezavnost, hevristika_basic)
                 igralec2 = Racunalnik(self, self.barva2, ime_igralec2, algo)  # TODO

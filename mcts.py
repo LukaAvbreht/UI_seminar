@@ -51,8 +51,11 @@ class mcts():
 
         if self.limitType == 'time':
             timeLimit = time.time() + self.timeLimit / 1000
+            i = 0
             while time.time() < timeLimit:
                 self.executeRound()
+                i+=1
+            print(i)
         else:
             for i in range(self.searchLimit):
                 self.executeRound()
