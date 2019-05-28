@@ -55,7 +55,7 @@ class mcts():
             while time.time() < timeLimit:
                 self.executeRound()
                 i+=1
-            print(i)
+            # print(i)
         else:
             for i in range(self.searchLimit):
                 self.executeRound()

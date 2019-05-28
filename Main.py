@@ -367,8 +367,8 @@ class tkmlin():
             1: 100,
             2: 500,
             3: 1000,
-            4: 50000,
-            5: 100000
+            4: 5000,
+            5: 60000
         }
 
         def creategame():
@@ -381,7 +381,7 @@ class tkmlin():
                 algo = alg_options[var_alg_1.get()]
                 tezavnost = var.get()
                 if var_alg_1.get() in ["Pure MCTS"]:
-                    tezavnost = zahtevnost_timelimit[tezavnost]
+                    tezavnost = zahtevnost_timelimit[int(tezavnost)]
                     algo = algo(tezavnost)
                 else:
                     algo = algo(tezavnost, hevristika_basic)
@@ -392,11 +392,14 @@ class tkmlin():
                 algo = alg_options[var_alg_2.get()]
                 tezavnost = var2.get()
                 if var_alg_2.get() in ["Pure MCTS"]:
-                    tezavnost = zahtevnost_timelimit[tezavnost]
+                    tezavnost = zahtevnost_timelimit[int(tezavnost)]
                     algo = algo(tezavnost)
                 else:
                     algo = algo(tezavnost, hevristika_basic)
                 igralec2 = Racunalnik(self, self.barva2, ime_igralec2, algo)  # TODO
+
+            print(igralec1.algoritem)
+            print(igralec2.algoritem)
             self.nova_igra(igralec1, igralec2)
             nov_game.destroy()
 
@@ -571,6 +574,7 @@ class Igralec():
         self.tretji_klik = None
         self.barva = barva
         self.ime = ime
+        self.algoritem = "Human"
 
     def ponastavi(self):
         """Resetira igralčevo potezo na nevtralno pozicijo. """

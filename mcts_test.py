@@ -6,6 +6,7 @@ import time
 
 MAX_MOVE_NUM = 10**3
 
+
 def AutomaticTester(player1, player2, n):
     """
     Avtomatic tester that runs the player 1 using hevristic hev1 against player 2 using hevristic hev2 n times and
@@ -35,15 +36,15 @@ def game_playout(player1, player2):
 
     stevilo_potez = 0
 
-    print(igra.stanje)
+    # print(igra.stanje)
 
     while igra.stanje[0] != "ZMAGA":
-        if stevilo_potez % 1 == 0:
-            pprint(igra.plosca)
-            print("na potezi: ", igra.na_potezi)
-            print()
+        # if stevilo_potez % 35 == 0:
+        #     # pprint(igra.plosca)
+        #     # print("na potezi: ", igra.na_potezi)
+        #     # print()
         if stevilo_potez > MAX_MOVE_NUM:
-            print("Zaciklal smo se")
+            #print("Zaciklal smo se")
             return [0, 0]
 
         stevilo_potez += 1
@@ -67,7 +68,7 @@ def game_playout(player1, player2):
             if player2.jemljem[0] != "PRAZNO":
                 igra.odstrani_figurico(*player2.jemljem)
 
-            print(player2.poteza," in ",time.time()-time_start)
+            # print(player2.poteza," in ",time.time()-time_start)
             # print(igra.stanje)
         else:
             raise Exception("Nemoramo odigrati poteze igralca {0}".format(igra.na_potezi))
@@ -84,11 +85,15 @@ if __name__ == '__main__':
     hev1 = hevristika_basic
 
     alg2 = PureMonteCarloTreeSearch
-    time_lim = 5000
+    time_lim = 30000
 
     player1 = alg1(depth1, hev1)
     player2 = alg2(timeLimit=time_lim)
 
-    AutomaticTester(player1, player2, 5)
+    n = 20 # 50
+
+    print("rezultat: ",AutomaticTester(player1, player2, n))
+
+
 
 
