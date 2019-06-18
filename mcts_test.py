@@ -1,5 +1,5 @@
 from igra import *
-from algo_prisk import MiniMax, AlphaBetta, PureMonteCarloTreeSearch
+from algo_prisk import MiniMax, AlphaBetta, PureMonteCarloTreeSearch, MonteCarloAlphaHybrid
 from hevristike import hevristika_basic
 from pprint import pprint
 import time
@@ -83,13 +83,17 @@ if __name__ == '__main__':
     depth1 = 5
     hev1 = hevristika_basic
 
-    alg2 = PureMonteCarloTreeSearch
+    alg2 = MonteCarloAlphaHybrid
     time_lim = 30000
+    hev2 = hevristika_basic
+
+    # alg2 = PureMonteCarloTreeSearch
+    # time_lim = 30000
 
     player1 = alg1(depth1, hev1)
-    player2 = alg2(timeLimit=time_lim)
+    player2 = alg2(timeLimit=time_lim, hevristika=hev2)
 
-    n = 20 # 50
+    n = 20  # 50
 
     print("rezultat: ",AutomaticTester(player1, player2, n))
 
