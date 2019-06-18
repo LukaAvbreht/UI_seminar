@@ -261,15 +261,21 @@ class MonteCarloAlphaHybrid:
         self.mcts_timeLimit = timeLimit
         self.hevristika = hevristika
 
+    ZMAGA = 1000000  # Mora biti vsaj 10^6
+    NESKONCNO = ZMAGA + 1  # Več kot zmaga
+
     def izracunaj_potezo(self, igra):
         self.igra = igra
         self.jaz = self.igra.na_potezi
         self.poteza = None
         self.jemljem = None
         if self.igra.faza == 0:
-            poteza = self.alfabeta(5, -100001, 100001, True)[0]
-        else:
-            poteza = self.pure_mcts()
+            poteza = self.alfabeta(4, -100001, 100001, True)[0]
+        elif self.igra.faza == 1:
+            if sum(self.igra.figurice.values()) > 10:
+                poteza = self.alfabeta(6, -100001, 100001, True)[0]
+            else:
+                poteza = self.pure_mcts()
         self.igra = None
         self.jaz = None
         self.poteza = poteza[:4]
