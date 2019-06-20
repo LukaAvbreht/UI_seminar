@@ -4,7 +4,7 @@ from igra import *
 from PIL import ImageTk, Image
 import threading
 import random
-from algo_prisk import AlphaBetta, MiniMax, PureMonteCarloTreeSearch
+from algo_prisk import AlphaBetta, MiniMax, PureMonteCarloTreeSearch, MonteCarloAlphaHybrid
 from hevristike import hevristika_basic
 
 
@@ -361,14 +361,14 @@ class tkmlin():
         """Napravi okno, kjer si lahko izberemo nastavitve za novo igro, ter jo tako zacnemo"""
         # TODO kle bo treba dodat razlicne algoritme in razlicne hevristike
 
-        alg_options = {"Alpha Betta": AlphaBetta, "Mini max": MiniMax, "Pure MCTS": PureMonteCarloTreeSearch}
+        alg_options = {"Alpha Betta": AlphaBetta, "Mini max": MiniMax, "Pure MCTS": PureMonteCarloTreeSearch, "Hybrid": MonteCarloAlphaHybrid}
 
         zahtevnost_timelimit = {
             1: 100,
             2: 500,
             3: 1000,
-            4: 5000,
-            5: 60000
+            4: 10000,
+            5: 30000
         }
 
         def creategame():
@@ -383,6 +383,9 @@ class tkmlin():
                 if var_alg_1.get() in ["Pure MCTS"]:
                     tezavnost = zahtevnost_timelimit[int(tezavnost)]
                     algo = algo(tezavnost)
+                elif var_alg_1.get() in ["Hybrid"]:
+                    tezavnost = zahtevnost_timelimit[int(tezavnost)]
+                    algo = algo(tezavnost, hevristika_basic)
                 else:
                     algo = algo(tezavnost, hevristika_basic)
                 igralec1 = Racunalnik(self, self.barva1, ime_igralec1, algo)  # TODO
@@ -394,6 +397,9 @@ class tkmlin():
                 if var_alg_2.get() in ["Pure MCTS"]:
                     tezavnost = zahtevnost_timelimit[int(tezavnost)]
                     algo = algo(tezavnost)
+                elif var_alg_2.get() in ["Hybrid"]:
+                    tezavnost = zahtevnost_timelimit[int(tezavnost)]
+                    algo = algo(tezavnost, hevristika_basic)
                 else:
                     algo = algo(tezavnost, hevristika_basic)
                 igralec2 = Racunalnik(self, self.barva2, ime_igralec2, algo)  # TODO

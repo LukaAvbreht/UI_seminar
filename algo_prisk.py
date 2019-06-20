@@ -272,7 +272,7 @@ class MonteCarloAlphaHybrid:
         if self.igra.faza == 0:
             poteza = self.alfabeta(4, -100001, 100001, True)[0]
         elif self.igra.faza == 1:
-            if sum(self.igra.figurice.values()) > 10:
+            if sum(self.igra.figurice.values()) > 12:
                 poteza = self.alfabeta(6, -100001, 100001, True)[0]
             else:
                 poteza = self.pure_mcts()
